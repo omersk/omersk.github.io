@@ -30,54 +30,69 @@ Amazing!
 
 Now, let's experiment by inserting some common XSS attack patterns:
 
-Test 1: Basic HTML Tags
-Input:
-\<b\>BoldText\</b\>
+### Test 1: Basic HTML Tags
+#### Input:
+```
+<b>BoldText</b>
+```
 
-Result:
+#### Result:
 This didn't work. The \<b\> tags were removed when I checked the output:
 
 ![Lightspark BoldText](/assets/img/Lightspark-BoldText.jpg)
 
 Interestingly, examining the HTML revealed that the text was wrapped under:
-\<strong\>“BoldText”\</strong\>
+```
+<strong>“BoldText”</strong>
+```
 
 Alright, this is intriguing. Let's proceed with more common XSS payloads.
 
-Test 2: JavaScript Injection
-Input:
-\<script\>alert(1)\</script\>
+### Test 2: JavaScript Injection
+#### Input:
+```
+<script>alert(1)</script>
+```
 
-Result:
+#### Result:
 The displayed output was:
 
 ![Lightspark BoldText](/assets/img/Lightspark-Alert.jpg)
 
 And the HTML contained:
-\<strong\>“”\</strong\>
+```
+<strong>“”</strong>
+```
 
 Unfortunately, the script tags were completely sanitized. No alert was triggered.
 
-Test 3: Encoded Characters
+### Test 3: Encoded Characters
 Next, I attempted to bypass the filters by encoding the script tags, like this:
+```
 &lt;script&gt;alert(1)&lt;/script&gt;
+```
 
-Result:
+#### Result:
 The output looked like:
-\<strong\>“\<script\>alert(1)\</script\>”\</strong\>
+```
+<strong>“<script>alert(1)</script>”</strong>
+```
 
 But again, no alert was triggered. Most likely, this is because the script was treated as plain text within quotation marks.
 
-Test 4: Using Alternative Payloads
+### Test 4: Using Alternative Payloads
 I decided to step up the game and use a more sophisticated approach. Based on ChatGPT's suggestion:
 
-"Sometimes, certain event handlers or elements like \<img\> or \<svg\> might be overlooked by filters. For example:
-\<img src="x" onerror="alert(1)"\>"
+>Sometimes, certain event handlers or elements like \<img\> or \<svg\> might be overlooked by filters. For example:
+```
+<img src="x" onerror="alert(1)">
+```
+{: .prompt-tip }
 
 Let's give this a try:
 
 
-Result:
+#### Result:
 ![Lightspark BoldText](/assets/img/Lightspark-XSS.jpg)
 It worked!!!
 
