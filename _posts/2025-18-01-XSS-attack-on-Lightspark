@@ -16,4 +16,14 @@ I immediately googled the first bug bounty program I could find on HackerOne and
 And that’s where the real adventure began...
 
 ## Research
+I opened up the website and searched for a common XSS structre: a text box that gets an input and prints the output somewhere in the screen.
+After going through some pages, I've found the following page:
+![Ligspark SupportPage](/assets/img/Ligspark-SupportPage.jpg)
+Cool, let's try and enter a random input, and see if its write my input as not found...
+![Ligspark NotFoundPage](/assets/img/Ligspark-NotFoundPage.jpg)
+Amazing!!!
+
+Let's try and insert some common XSS attacks:
+
+<b>BoldText</b>
 
