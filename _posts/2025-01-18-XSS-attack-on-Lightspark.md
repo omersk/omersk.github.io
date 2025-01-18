@@ -96,6 +96,8 @@ Let's give this a try:
 ![Lightspark BoldText](/assets/img/Lightspark-XSS.jpg)
 It worked!!!
 
+However, after reaserching a bit, it seems like the vulnerabillity happens in the inner box that auto-search the values that you input, and it saves your search history, and he stores it in a way that vulnerable to a XSS attacks. However, an attacker cannot do anything with that information, because running URL's with this XSS attack seems to not affect the saved history, and therefore while it does a XSS vulnerabillity it seems to be not effective yet :(
+
 ## Summary:
-It's seems like there is a Reflected XSS vulnerabillity in the https://support.lightspark.com/support/search website. The vulnerabillity has been reported for lightspark and hopefully they will fix it soon.
+A XSS was found on the search history of the Lightspark website support page. However it seems to be not implementive, since the URL blocks a XSS attacks :(
 
