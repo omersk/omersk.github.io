@@ -23,7 +23,7 @@ After browsing through several pages, I found the following page:
 
 
 Cool! Let's try entering some random input to see if it echoes back our text as "Not Found."
-![Lightspark BoldText](/assets/img/Lightspark-NotFound.jpg)
+![Lightspark BoldText](/assets/img/Lightspark-NotFoundPage.jpg)
 
 
 Amazing!
