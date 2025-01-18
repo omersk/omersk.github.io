@@ -54,7 +54,7 @@ The displayed output was:
 ![Lightspark BoldText](/assets/img/Lightspark-Alert.jpg)
 
 And the HTML contained:
-<strong>“”</strong>
+\<strong\>“”\</strong\>
 
 Unfortunately, the script tags were completely sanitized. No alert was triggered.
 
@@ -72,7 +72,7 @@ Test 4: Using Alternative Payloads
 I decided to step up the game and use a more sophisticated approach. Based on ChatGPT's suggestion:
 
 "Sometimes, certain event handlers or elements like \<img\> or \<svg\> might be overlooked by filters. For example:
-<img src="x" onerror="alert(1)">"
+\<img src="x" onerror="alert(1)"\>"
 
 Let's give this a try:
 
