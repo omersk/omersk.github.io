@@ -19,11 +19,11 @@ And that’s where the real adventure began...
 I opened the website and searched for a common XSS structure: a text box that takes input and displays it somewhere on the screen.
 
 After browsing through several pages, I found the following page:
-![Ligspark SupportPage](/assets/img/Ligspark-SupportPage.jpg)
+![Lightspark SupportPage](/assets/img/Lightspark-SupportPage.jpg)
 
 
 Cool! Let's try entering some random input to see if it echoes back our text as "Not Found."
-![Ligspark BoldText](/assets/img/Ligspark-NotFound.jpg)
+![Lightspark BoldText](/assets/img/Lightspark-NotFound.jpg)
 
 
 Amazing!
@@ -37,7 +37,7 @@ Input:
 Result:
 This didn't work. The \<b\> tags were removed when I checked the output:
 
-![Ligspark BoldText](/assets/img/Ligspark-BoldText.jpg)
+![Lightspark BoldText](/assets/img/Lightspark-BoldText.jpg)
 
 Interestingly, examining the HTML revealed that the text was wrapped under:
 \<strong\>“BoldText”\</strong\>
@@ -51,7 +51,7 @@ Input:
 Result:
 The displayed output was:
 
-![Ligspark BoldText](/assets/img/Ligspark-Alert.jpg)
+![Lightspark BoldText](/assets/img/Lightspark-Alert.jpg)
 
 And the HTML contained:
 <strong>“”</strong>
@@ -78,6 +78,6 @@ Let's give this a try:
 
 
 Result:
-![Ligspark BoldText](/assets/img/Ligspark-XSS.jpg)
+![Lightspark BoldText](/assets/img/Lightspark-XSS.jpg)
 It worked!!!
 
