@@ -16,10 +16,10 @@ timezone: Asia/Jerusalem
 
 title: Omer Sassoni # the main title
 
-tagline: Software Developer as a job, Vulnerabillity Researcher as a hobby # it will display as the subtitle
+tagline: Software Developer as a job; Vulnerabillity Researcher as a hobby # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
-  Software Developer as a job, Vulnerabillity Researcher as a hobby
+  Software Developer as a job; Vulnerabillity Researcher as a hobby
 
 # Fill in the protocol & hostname for your site.
 # E.g. 'https://username.github.io', note that it does not end with a '/'.
