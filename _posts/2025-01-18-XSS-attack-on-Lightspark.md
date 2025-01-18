@@ -96,3 +96,6 @@ Let's give this a try:
 ![Lightspark BoldText](/assets/img/Lightspark-XSS.jpg)
 It worked!!!
 
+## Summary:
+It's seems like there is a Reflected XSS vulnerabillity in the https://support.lightspark.com/support/search website. The vulnerabillity has been reported for lightspark and hopefully they will fix it soon.
+
