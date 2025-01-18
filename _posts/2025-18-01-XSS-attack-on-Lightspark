@@ -1,3 +1,19 @@
 ## Intro
-Hi there.
-This is my first blogpost ever.
+Hi there! This is my very first blog post, and I couldn’t be more excited to share it with you! 😊
+
+The story behind this post might seem like it begins in the dullest way imaginable—homework for my M.E. studies at the prestigious Technion Institution. But don’t let that fool you; what starts as a routine academic assignment takes a fascinating turn into the thrilling world of cybersecurity.
+
+As a passionate tech enthusiast with a deep interest in uncovering security vulnerabilities, I always gravitated toward the most challenging and relevant courses the Technion had to offer. Though these courses were often the hardest and most time-consuming, they were always worth the effort.
+
+From Reverse Engineering (236496) to Operating Systems (236376) to Introduction to Learning Systems (236501), my journey through these courses ultimately led me to what I consider the crown jewel of cybersecurity studies: Secure Programming (236491). This course, while notoriously difficult, turned out to be my playground, as I was already familiar with many of its core topics. My experience competing in CTFs like pwnable.kr and hackthissite.com had equipped me with the skills to tackle most of the material with ease.
+
+But then came an unexpected twist. Today, I encountered an assignment on XSS attacks, the one topic I hadn’t explored before. Within minutes of diving into it, I was blown away! Completing the assignment in record time, I felt an unstoppable urge to channel my newfound knowledge into something bigger.
+
+I immediately googled the first bug bounty program I could find on HackerOne and stumbled upon Lightspark’s challenge:
+
+![Lightspark BugBounty](/assets/img/Lightspark-BugBounty.jpg)
+
+And that’s where the real adventure began...
+
+## Research
+
