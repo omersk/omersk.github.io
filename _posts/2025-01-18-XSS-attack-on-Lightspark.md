@@ -16,14 +16,68 @@ I immediately googled the first bug bounty program I could find on HackerOne and
 And that’s where the real adventure began...
 
 ## Research
-I opened up the website and searched for a common XSS structre: a text box that gets an input and prints the output somewhere in the screen.
-After going through some pages, I've found the following page:
+I opened the website and searched for a common XSS structure: a text box that takes input and displays it somewhere on the screen.
+
+After browsing through several pages, I found the following page:
 ![Ligspark SupportPage](/assets/img/Ligspark-SupportPage.jpg)
-Cool, let's try and enter a random input, and see if its write my input as not found...
-![Ligspark NotFoundPage](/assets/img/Ligspark-NotFoundPage.jpg)
-Amazing!!!
 
-Let's try and insert some common XSS attacks:
 
-<b>BoldText</b>
+Cool! Let's try entering some random input to see if it echoes back our text as "Not Found."
+![Ligspark BoldText](/assets/img/Ligspark-NotFound.jpg)
+
+
+Amazing!
+
+Now, let's experiment by inserting some common XSS attack patterns:
+
+Test 1: Basic HTML Tags
+Input:
+\<b\>BoldText\</b\>
+
+Result:
+This didn't work. The \<b\> tags were removed when I checked the output:
+
+![Ligspark BoldText](/assets/img/Ligspark-BoldText.jpg)
+
+Interestingly, examining the HTML revealed that the text was wrapped under:
+\<strong\>“BoldText”\</strong\>
+
+Alright, this is intriguing. Let's proceed with more common XSS payloads.
+
+Test 2: JavaScript Injection
+Input:
+\<script\>alert(1)\</script\>
+
+Result:
+The displayed output was:
+
+![Ligspark BoldText](/assets/img/Ligspark-Alert.jpg)
+
+And the HTML contained:
+<strong>“”</strong>
+
+Unfortunately, the script tags were completely sanitized. No alert was triggered.
+
+Test 3: Encoded Characters
+Next, I attempted to bypass the filters by encoding the script tags, like this:
+&lt;script&gt;alert(1)&lt;/script&gt;
+
+Result:
+The output looked like:
+\<strong\>“\<script\>alert(1)\</script\>”\</strong\>
+
+But again, no alert was triggered. Most likely, this is because the script was treated as plain text within quotation marks.
+
+Test 4: Using Alternative Payloads
+I decided to step up the game and use a more sophisticated approach. Based on ChatGPT's suggestion:
+
+"Sometimes, certain event handlers or elements like \<img\> or \<svg\> might be overlooked by filters. For example:
+<img src="x" onerror="alert(1)">"
+
+Let's give this a try:
+
+
+Result:
+![Ligspark BoldText](/assets/img/Ligspark-XSS.jpg)
+It worked!!!
 
