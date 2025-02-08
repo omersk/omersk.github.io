@@ -34,9 +34,8 @@ But wait. What about a script? You know, something with an alert box?
 
 ...Blocked. Seriously? That’s a hard pass from the site. Access Denied, my old enemy.
 
-At this point, I was about to just throw in the towel and take that nap. But then... a lightbulb moment! I Googled “Access Denied” and found this gem:
+At this point, I was about to just throw in the towel and take that nap. But then... a lightbulb moment! I Googled “Access Denied” along with "XSS attack" and found this gem:
 
-![Brightlysoftware Search Button Script Alert](/assets/img/Brightlysoftware/Brightlysoftware_stackoverflow_question.jpg)
 ![Brightlysoftware Search Button Script Alert](/assets/img/Brightlysoftware/Brightlysoftware_stackoverflow_answer.jpg)
 
 Could this be a sign? I was about to find out. With my hacking instincts tingling, I decided to check whether the website was using a blacklist to block certain queries. I tested a few things, like this harmless little query:
@@ -91,10 +90,9 @@ So, to summarize: I found a website with a sweet little reflected XSS vulnerabil
 And just like that, I was off to dreamland. Sweet, sweet hacking dreams.
 
 Takeaways:
-
-*** Google Dorks = Power. Use it wisely.
-*** XSS vulnerabilities? They're everywhere, just waiting for you to say, "Hello!"
-*** Blacklists are not invincible. Keep digging, and you'll find the cracks.
-*** And most importantly... naps are essential. 💤
+- Google Dorks = Power. Use it wisely.
+- XSS vulnerabilities? They're everywhere, just waiting for you to say, "Hello!"
+- Blacklists are not invincible. Keep digging, and you'll find the cracks.
+- And most importantly... naps are essential. 💤
 
 Hope you enjoyed the ride! Don’t forget to check for those security vulnerabilities while you're Googling your next pizza order.
