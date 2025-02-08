@@ -11,7 +11,7 @@ But then came an unexpected twist. Today, I encountered an assignment on XSS att
 
 I immediately googled the first bug bounty program I could find on HackerOne and stumbled upon Lightspark’s challenge:
 
-![Lightspark BugBounty](/assets/img/Lightspark-BugBounty.jpg)
+![Lightspark BugBounty](/assets/img/Lightspark/Lightspark-BugBounty.jpg)
 
 And that’s where the real adventure began...
 
@@ -19,11 +19,11 @@ And that’s where the real adventure began...
 I opened the website and searched for a common XSS structure: a text box that takes input and displays it somewhere on the screen.
 
 After browsing through several pages, I found the following page:
-![Lightspark SupportPage](/assets/img/Lightspark-SupportPage.jpg)
+![Lightspark SupportPage](/assets/img/Lightspark/Lightspark-SupportPage.jpg)
 
 
 Cool! Let's try entering some random input to see if it echoes back our text as "Not Found."
-![Lightspark BoldText](/assets/img/Lightspark-NotFoundPage.jpg)
+![Lightspark BoldText](/assets/img/Lightspark/Lightspark-NotFoundPage.jpg)
 
 
 Amazing!
@@ -39,7 +39,7 @@ Now, let's experiment by inserting some common XSS attack patterns:
 #### Result:
 This didn't work. The \<b\> tags were removed when I checked the output:
 
-![Lightspark BoldText](/assets/img/Lightspark-BoldText.jpg)
+![Lightspark BoldText](/assets/img/Lightspark/Lightspark-BoldText.jpg)
 
 Interestingly, examining the HTML revealed that the text was wrapped under:
 ```
@@ -57,7 +57,7 @@ Alright, this is intriguing. Let's proceed with more common XSS payloads.
 #### Result:
 The displayed output was:
 
-![Lightspark BoldText](/assets/img/Lightspark-Alert.jpg)
+![Lightspark BoldText](/assets/img/Lightspark/Lightspark-Alert.jpg)
 
 And the HTML contained:
 ```
@@ -93,7 +93,7 @@ Let's give this a try:
 
 
 #### Result:
-![Lightspark BoldText](/assets/img/Lightspark-XSS.jpg)
+![Lightspark BoldText](/assets/img/Lightspark/Lightspark-XSS.jpg)
 It worked!!!
 
 However, after reaserching a bit, it seems like the vulnerabillity happens in the inner box that auto-search the values that you input, and it saves your search history, and he stores it in a way that vulnerable to a XSS attacks. However, an attacker cannot do anything with that information, because running URL's with this XSS attack seems to not affect the saved history, and therefore while it does a XSS vulnerabillity it seems to be not effective yet :(
