@@ -8,6 +8,7 @@ So in order to start my journey, I had to first find a victim. And as a great fa
 
 Me:
 > I want to research an embedded device for fun purposes and try to exploit it for educational reasons. However, it costs a lot of money, so I want something that will be cheap, yet interesting enough. What can I do?
+
 ChatGPT:
 >🔥 Popular Old Routers for Hacking and Research
 >        1. TP-Link TL-WR841N
@@ -197,8 +198,7 @@ anyway, at this point I thought about it again, and I've got to the point that e
 #### Understanding Where The WebServer Implementation Located
 So, in order to find my vulnerabillites, I looked at the file system more deeply, and tried to find some code that runs the webserver himself. Since, usually, the webservers are being executed as a user programs in the init of the system, and the webservers are usually have a different implementation to each device, I thought that it has higher precentages to include vulnerabilites.
 
-> [!TIP]
-> The webservers implementations of router almost always a user-mode program stored as a regular file in the filesystem, not part of the Linux kernel. The kernel does not load the web server itself. Instead, a user-space init system or startup script is responsible for launching it after the kernel has booted and mounted the root filesystem.
+>The webservers implementations of router almost always a user-mode program stored as a regular file in the filesystem, not part of the Linux kernel. The kernel does not load the web server itself. Instead, a user-space init system or startup script is responsible for launching it after the kernel has booted and mounted the root filesystem.
 
 
 
