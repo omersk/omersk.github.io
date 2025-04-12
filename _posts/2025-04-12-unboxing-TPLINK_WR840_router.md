@@ -25,7 +25,7 @@ And I download the first version that I've seen:
 
 #### Extracting The Firmware
 Now I need to extract the firmware of the device, and it actually quite simple. By running binwalk on it, I actually solved it easily:
-```console
+```bash
 t_omersas@PC /tmp $ binwalk -e TL_WR840N.bin
 
 DECIMAL       HEXADECIMAL     DESCRIPTION
@@ -48,14 +48,14 @@ WARNING: Symlink points outside of the extraction directory: /tmp/_TL_WR840N.bin
 ```
 
 Cool, let's see the content of the files inside it:
-```console
+```bash
 t_omersas@PC /tmp $ cd _TL_WR840N.bin.extracted
 t_omersas@PC /tmp/_TL_WR840N.bin.extracted $ ls
 100200.squashfs  10400  10400.7z  squashfs-root  squashfs-root-0
 ```
 
 running binwalk on 10400 lead to:
-```console
+```bash
 t_omersas@PC /tmp/_TL_WR840N.bin.extracted $ binwalk 10400
 
 DECIMAL       HEXADECIMAL     DESCRIPTION
@@ -68,14 +68,14 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 2556372       0x2701D4        Neighborly text, "NeighborAdvertisementsorts"
 2559839       0x270F5F        Neighborly text, "neighbor %.2x%.2x.%pM lostrename link %s to %s"
 2981888       0x2D8000        ASCII cpio archive (SVR4 with no CRC), file name: "/dev", file name length: "0x00000005", file size: "0x00000000"
-2982004       0x2D8074        ASCII cpio archive (SVR4 with no CRC), file name: "/dev/console", file name length: "0x0000000D", file size: "0x00000000"
+2982004       0x2D8074        ASCII cpio archive (SVR4 with no CRC), file name: "/dev/bash", file name length: "0x0000000D", file size: "0x00000000"
 2982128       0x2D80F0        ASCII cpio archive (SVR4 with no CRC), file name: "/root", file name length: "0x00000006", file size: "0x00000000"
 2982244       0x2D8164        ASCII cpio archive (SVR4 with no CRC), file name: "TRAILER!!!", file name length: "0x0000000B", file size: "0x00000000"
 ```
 Cool, it seems like the kernel that the device is running.
 
 Let's also examine the squashfs-root directory (which seems to be equal to squashfs-root-0 directory, and extracting 100200.squashfs file seems to be the same):
-```console
+```bash
 t_omersas@PC /tmp/_TL_WR840N.bin.extracted $ ls squashfs-root/*
 squashfs-root/linuxrc
 
@@ -121,7 +121,7 @@ In this point I decided to try and emulate the linux kernel. The reasons I decid
 Actually in a retrospective, it is not something I would repeat in the future, since emulating the kernel is not so efficient, and instead I think it is more rational to find bugs in a user-mode applications written by TPLink.
 
 So in order to emulate it I had to discover first, what is the architecture of this kernel. Binwalk seems to be with very clear results:
-```console
+```bash
 t_omersas@PC ~ $ cd ~/projects/_TL_WR840N.bin.extracted/
 t_omersas@PC ~/projects/_TL_WR840N.bin.extracted $ vim ~/.tmux.conf
 t_omersas@PC ~/projects/_TL_WR840N.bin.extracted $ binwalk -A 10400
@@ -144,7 +144,7 @@ DECIMAL       HEXADECIMAL     DESCRIPTION
 ```
 
 Ok let's go one step ahead, and try to run it using qemu:
-```console
+```bash
 qemu-mips 10400
 Error while loading /tmp/_TL_WR840N.bin.extracted/10400: Exec format error
 ```
@@ -165,7 +165,7 @@ SECTIONS
 }
 ```
 and then running:
-```console
+```bash
 mipsel-linux-gnu-ld -T link.ld -o 10400_exec.elf 10400.elf
 ```
 but then I got:
@@ -178,14 +178,14 @@ which is very sad. Looking at the official website of qemu, I discovered that su
 > The MIPS Trap-and-Emul KVM host and guest support has been removed from Linux upstream kernel, declare it deprecated.
 
 so I've downloaded qemu-5.0.0 by:
-```console
+```bash
 wget https://download.qemu.org/qemu-5.0.0.tar.xz
 tar -xvf qemu-5.0.0.tar.xz
 cd qemu-5.0.0
 ```
 and executed something like that:
-```console
-qemu-system-mipsel -M malta -kernel 10400_exec.elf -initrd initrd.img -drive file=rootfs.sqfs,format=raw,if=mtd -append "root=/dev/mtdblock0 console=ttyS0" -nographic
+```bash
+qemu-system-mipsel -M malta -kernel 10400_exec.elf -initrd initrd.img -drive file=rootfs.sqfs,format=raw,if=mtd -append "root=/dev/mtdblock0 bash=ttyS0" -nographic
 ```
 but now I've got something like:
 ```
