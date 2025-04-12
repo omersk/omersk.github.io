@@ -198,7 +198,41 @@ anyway, at this point I thought about it again, and I've got to the point that e
 #### Understanding Where The WebServer Implementation Located
 So, in order to find my vulnerabillites, I looked at the file system more deeply, and tried to find some code that runs the webserver himself. Since, usually, the webservers are being executed as a user programs in the init of the system, and the webservers are usually have a different implementation to each device, I thought that it has higher precentages to include vulnerabilites.
 
->The webservers implementations of router almost always a user-mode program stored as a regular file in the filesystem, not part of the Linux kernel. The kernel does not load the web server itself. Instead, a user-space init system or startup script is responsible for launching it after the kernel has booted and mounted the root filesystem.
+> **💡 Tip:** The webservers implementations of router almost always a user-mode program stored as a regular file in the filesystem, not part of the Linux kernel. The kernel does not load the web server itself. Instead, a user-space init system or startup script is responsible for launching it after the kernel has booted and mounted the root filesystem.
+
+cool, so based on this, I searched for a relevant file on the bin directory, to see, maybe there is an implementation there.
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ ls -la bin
+total 3636
+drwxr-xr-x  2 t_omersas t_omersas    4096 Apr 12 12:56 .
+drwxr-xr-x 13 t_omersas t_omersas    4096 Apr 12 09:49 ..
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 ash -> busybox
+-rwxr-xr-x  1 t_omersas t_omersas  262100 Apr 12 09:49 busybox
+-rw-r--r--  1 t_omersas t_omersas 3449390 Apr 12 12:56 busybox.i64
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 cat -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 chmod -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 cp -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 date -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 df -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 echo -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 kill -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 login -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 ls -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 mkdir -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 mount -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 netstat -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 pidof -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 ping -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 ping6 -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 ps -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 rm -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 sh -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 sleep -> busybox
+lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 umount -> busybox
+```
+it seems like there is only one file that is interesting here, and this is the busybox. 
+> **💡 Tip:** busybox is a lightweight
 
 
 
