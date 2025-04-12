@@ -231,8 +231,173 @@ lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 sh -> busybox
 lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 sleep -> busybox
 lrwxrwxrwx  1 t_omersas t_omersas       7 Apr 12 09:49 umount -> busybox
 ```
-it seems like there is only one file that is interesting here, and this is the busybox. 
-> **💡 Tip:** busybox is a lightweight
+
+It seems like there is only one file that is interesting here, and this is the busybox. 
+> **💡 Tip:** BusyBox provides a minimal implementation of init and the whole suite of core Unix tools.
+
+The busybox file seems to be an MIPSEL elf, and by opening it on IDA and searching for relevant strings, I didn't find any relevant data for an http server :(
+for example, I didn't find a string that includes "index.htm" which I saw in the web directory and appears to be the html file of the main page of the router webserver...
+
+Anyway, I decided to try and emulate this file, and maybe I will discover some other relevant data about him:
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ sudo qemu-mipsel -L . ./bin/busybox
+./bin/busybox: cache '/etc/ld.so.cache' is corrupt
+BusyBox v1.19.2 (2024-12-30 15:52:05 CST) multi-call binary.
+Copyright (C) 1998-2011 Erik Andersen, Rob Landley, Denys Vlasenko
+and others. Licensed under GPLv2.
+See source distribution for full notice.
+
+Usage: busybox [function] [arguments]...
+   or: busybox --list[-full]
+   or: function [arguments]...
+
+        BusyBox is a multi-call binary that combines many common Unix
+        utilities into a single executable.  Most people will create a
+        link to busybox for each function they wish to use and BusyBox
+        will act like whatever it was invoked as.
+
+Currently defined functions:
+        arping, ash, brctl, cat, chmod, cp, date, df, echo, free, getty, halt,
+        ifconfig, init, insmod, ipcrm, ipcs, kill, killall, linuxrc, login, ls,
+        lsmod, mkdir, mount, netstat, pidof, ping, ping6, poweroff, ps, reboot,
+        rm, rmmod, route, sh, sleep, taskset, tftp, top, umount, vconfig
+```
+
+looks good! seems like an implementation for a several functions... let's try to arping to 8.8.8.8:
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ sudo qemu-mipsel -L . ./bin/busybox arping 8.8.8.8
+./bin/busybox: cache '/etc/ld.so.cache' is corrupt
+ARPING to 8.8.8.8 from 172.20.123.158 via eth0
+^CSent 25 probe(s) (25 broadcast(s))
+Received 0 reply (0 request(s), 0 broadcast(s))
+```
+seems to fail, but it starts well.... maybe it's because of the emulation.
+
+Anyway, let's keep searching for our webserver. By looking at some more directories I saw another suspicious file: /etc/init.d/rcS
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ cat etc/init.d/rcS
+#!/bin/sh
+
+mount -a
+# added by yangcaiyong for sysfs
+mount -t sysfs /sys /sys
+# ended add
+
+/bin/mkdir -m 0777 -p /var/https
+/bin/mkdir -m 0777 -p /var/lock
+/bin/mkdir -m 0777 -p /var/log
+/bin/mkdir -m 0777 -p /var/run
+/bin/mkdir -m 0777 -p /var/tmp
+/bin/mkdir -m 0777 -p /var/Wireless/RT2860AP
+/bin/mkdir -m 0777 -p /var/tmp/wsc_upnp
+cp -p /etc/SingleSKU_FCC.dat /var/Wireless/RT2860AP/SingleSKU.dat
+
+/bin/mkdir -m 0777 -p /var/tmp/dropbear
+
+/bin/mkdir -m 0777 -p /var/dev
+cp -p /etc/passwd.bak /var/passwd
+/bin/mkdir -m 0777 -p /var/l2tp
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+#echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
+
+echo 30 > /proc/sys/net/unix/max_dgram_qlen
+
+#krammer add for LAN can't continuous ping to WAN when exchenging the routing mode
+#bug1126
+echo 3 > /proc/sys/net/netfilter/nf_conntrack_icmp_timeout
+
+echo 0 > /proc/sys/net/ipv4/conf/default/accept_source_route
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route
+echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+
+echo 2560 > /proc/sys/net/netfilter/nf_conntrack_expect_max
+#defined 8192 in nf_conntrack_core.c
+echo 5120 > /proc/sys/net/netfilter/nf_conntrack_max
+
+#allow max low mem alloc
+echo 2 > /proc/sys/vm/overcommit_memory
+echo 100 > /proc/sys/vm/overcommit_ratio
+echo 2048 > /proc/sys/vm/min_free_kbytes
+
+insmod /lib/modules/kmdir/kernel/drivers/net/rt_rdm/rt_rdm.ko
+insmod /lib/modules/kmdir/kernel/drivers/net/raeth/raeth.ko
+
+#netfilter modules load
+insmod /lib/modules/kmdir/kernel/net/netfilter/nf_conntrack_proto_gre.ko
+insmod /lib/modules/kmdir/kernel/net/netfilter/nf_conntrack_pptp.ko
+
+#for sfe
+[ -d /lib/modules/kmdir/kernel/net/shortcut-fe ] && {
+        insmod /lib/modules/kmdir/kernel/net/shortcut-fe/shortcut-fe.ko
+        insmod /lib/modules/kmdir/kernel/net/shortcut-fe/shortcut-fe-cm.ko
+        echo 512 > /sys/sfe_ipv4/max_connections
+}
+
+#ip statisctics
+insmod /lib/modules/ipt_STAT.ko
+#support tplinklogin.net
+insmod /lib/modules/tp_domain.ko
 
 
+
+ifconfig lo 127.0.0.1 netmask 255.0.0.0
+
+#for l2tp modules
+insmod /lib/modules/pppol2tp.ko
+insmod /lib/modules/l2tp_ppp.ko
+
+#config mii for 7628
+config-mii.sh
+
+cos &
+```
+
+Looking deeply in the file, didn't lead to any lines that looks like running a webserver or something like that. 
+Keep on searching....
+
+Looking on the directory bin looks the most promoising result up now:
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ ls usr/bin
+afcd     cmxdns  dhcpd     dropbearkey    ebtables  igmpd      ipcrm   iptables  killall  pwdog      taskset  tdpd  top         wanType        xtables-multi
+arping   cos     dnsProxy  dropbearmulti  free      ip         ipcs    iwconfig  noipdns  rt2860apd  tc       tftp  traceroute  wlNetlinkTool
+ated_tp  dhcpc   dropbear  dyndns         httpd     ip6tables  ipping  iwpriv    ntpc     scp        tddp     tmpd  upnpd       wscd
+```
+
+
+Cool! there is the implementation for the webserver `httpd` and in addition, it seems like there is also an implementation for a tftp.
+
+Running strings on the http file shows that it really our desired file, as it holds all the files that we saw in the /web/main dir.
+```
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ strings usr/bin/httpd | grep htm                                                                                                                frame/login.htm                                                                                                                                                                                                  <html><head><title>%d %s</title></head><body><center><h1>%d %s</h1></center></body></html>                                                                                                                       domain-redirect.htm
+qr.htm
+index.htm
+text/html
+"%s.htm",
+<html><head></head><body>%s</body></html>
+<html><head></head><body>OK</body></html>
+/main/status.htm
+/main/statusAP.htm
+/main/statusClient.htm
+/main/stat.htm
+/main/wlStats.htm
+/main/qsStart.htm
+/main/qsType.htm
+/main/qsPPP.htm
+/main/qsStaIp.htm
+/main/qsWl.htm
+/main/qsL2tp.htm
+/main/qsPptp.htm
+/main/qsAuto.htm
+/main/qsEnd.htm
+/main/qsSave.htm
+...
+...
+...
+```
+
+#### Reversing The Web Server
 
