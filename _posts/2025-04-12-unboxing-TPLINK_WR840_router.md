@@ -31,21 +31,25 @@ And just like that, I had my victim:
 ✅ Practically begging to be hacked
 
 Let the chaos begin. 🧨
+## 🔬 Research
 
-## 🔍 Research
+### 🛒 Pre-Purchase Intel Gathering
 
-### Pre-Purchase Research
+#### 🧠 Step 1: Find the Firmware, Find the Fun
 
-#### Finding the Firmware
+Before spending even a single shekel, I wanted to peek inside the firmware and get a feel for what I’d be up against. Naturally, I turned once again to my loyal research assistant — ChatGPT.
 
-First mission: locate the router’s firmware — because why plug something in when you can tear apart its soul first?
+> *“Show me the bits, O wise one.”*
 
-With ChatGPT’s help, I found this golden archive:
+And voilà — ChatGPT delivered. It led me to a **firmware treasure trove** straight from TP-Link’s official website:
 
 👉 [TL-WR840N Firmware Downloads](https://www.tp-link.com/ae/support/download/tl-wr840n/?utm_source=chatgpt.com#Firmware)
 
-I grabbed the first one I saw, because patience is for people who don't void warranties:
-> `TL-WR840N(EU)_V6.20_241230`
+Without overthinking (or reading anything, to be honest), I downloaded the first shiny thing that caught my eye:
+
+> 🧾 **TL-WR840N(EU)\_V6.20\_241230**
+
+Because who needs documentation when you have curiosity and reckless optimism?
 
 #### Extracting the Firmware
 
