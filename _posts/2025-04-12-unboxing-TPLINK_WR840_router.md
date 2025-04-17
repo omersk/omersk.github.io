@@ -7,7 +7,7 @@
 
 Passover arrived earlier than expected this year, and with it came a tough decision:
 
-- 👨‍👩‍👧‍👦 Be social, find friends, and celebrate like a normal human being.
+- 👨👩👧👦 Be social, find friends, and celebrate like a normal human being.
 - 🔧 Unbox some dusty hardware and try to exploit it for fun.
 
 If you've read even one of my blog posts, you already know which route I took. Spoiler: my social skills are still stuck in bootloader mode.
