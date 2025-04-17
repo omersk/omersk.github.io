@@ -1,31 +1,36 @@
-
-# 🛠️ Hacking the Holidays: TP-Link WR840N Unboxing & Shenanigans
-
+# 🧪 Hacking Routers on Passover: Because Why Not?
 ## Introduction
 
-Ah, Passover — the perfect time to clean your home, reflect on freedom, and... tear apart cheap networking hardware?
-
-Faced with the holiday break, I had two options:
-
-- Go outside, touch grass, and be a normal person with friends.
-- Stay indoors, rip open a dusty old router, and see how fast I can make it beg for mercy.
-
-If you've ever read *literally anything* I've written, you know exactly which path I took 😎
-
-But first, I needed a worthy opponent. So I turned to my ever-faithful partner in crime: ChatGPT.
-
-Me:
-> I'm looking to hack into a small embedded device for totally innocent, 100% educational reasons. It needs to be cheap, hackable, and not explode. What should I get?
-
-ChatGPT:
-> 🔥 **Top Cheap Routers for Hacking Adventures**
-> 1. TP-Link TL-WR841N
-
-And just like that, destiny chose my target.
-
-Let's crack this thing open.
+> *“While you were out there finding friends, I was studying the firmware.”* — Me, probably
 
 ---
+
+Passover arrived earlier than expected this year, and with it came a tough decision:
+
+- 👨‍👩‍👧‍👦 Be social, find friends, and celebrate like a normal human being.
+- 🔧 Unbox some dusty hardware and try to exploit it for fun.
+
+If you've read even one of my blog posts, you already know which route I took. Spoiler: my social skills are still stuck in bootloader mode.
+
+Before diving into the binary abyss, I needed to find a worthy target. And who better to ask than my digital partner-in-crime, ChatGPT?
+
+---
+
+**👤 Me:**  
+> I want to research an embedded device for fun and try to exploit it (all for educational purposes, of course). But I'm on a budget. Any cheap and interesting suggestions?
+
+**🤖 ChatGPT:**  
+> 🔥 Popular Old Routers for Hacking and Research:  
+>  1. **TP-Link TL-WR841N**
+
+---
+
+And just like that, I had my victim:  
+✅ Cheap  
+✅ Interesting  
+✅ Practically begging to be hacked
+
+Let the chaos begin. 🧨
 
 ## 🔍 Research
 
