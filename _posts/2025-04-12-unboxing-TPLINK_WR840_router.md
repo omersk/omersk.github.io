@@ -257,3 +257,177 @@ So, I gave up kernel emulation and did something smarter:
 
 Because let’s be honest... that’s where the juicy bugs live.
 
+#### 🌐 Finding the Web Server (a.k.a. "Where Are You Hiding, Little HTTPd?")
+
+At this point, I was ready to find some real vulnerabilities — the kind that live in user-mode programs. Since embedded web servers are often **custom-written for each device**, I figured this would be the most promising attack surface.
+
+> **💡 Tip:** Router web servers are almost always **user-mode binaries**, stored as regular files in the filesystem. They’re not baked into the Linux kernel — they’re started by an init script after the root filesystem is mounted.
+
+So, I began the hunt in the `bin/` directory:
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ ls -la bin
+total 3636
+drwxr-xr-x  2 t_omersas t_omersas    4096 Apr 12 12:56 .
+...
+-rwxr-xr-x  1 t_omersas t_omersas  262100 Apr 12 09:49 busybox
+-rw-r--r--  1 t_omersas t_omersas 3449390 Apr 12 12:56 busybox.i64
+...
+```
+
+Looks like everything here is just **symlinks to BusyBox** (classic).  
+> **💡 Tip:** BusyBox provides a minimal implementation of `init`, `sh`, and dozens of core Unix tools in a single binary.  
+
+I popped `busybox` into IDA, but didn't find anything web-related — no `index.htm`, no `http`, nothing that screams "I'm a web server!"
+
+Still curious, I tried running it:
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ sudo qemu-mipsel -L . ./bin/busybox
+...
+Currently defined functions:
+        arping, ash, brctl, cat, chmod, cp, date, df, echo, free, getty, halt,
+        ifconfig, init, insmod, ipcrm, ipcs, kill, killall, linuxrc, login, ls,
+        lsmod, mkdir, mount, netstat, pidof, ping, ping6, poweroff, ps, reboot,
+        rm, rmmod, route, sh, sleep, taskset, tftp, top, umount, vconfig
+```
+
+Nice! It works in QEMU. I even tried arping Google DNS for fun:
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ sudo qemu-mipsel -L . ./bin/busybox arping 8.8.8.8
+...
+ARPING to 8.8.8.8 from 172.20.123.158 via eth0
+^CSent 25 probe(s) (25 broadcast(s))
+Received 0 reply (0 request(s), 0 broadcast(s))
+```
+
+(No response — probably expected in emulation.)
+
+Still, no sign of a web server. So I dug deeper and found a potential lead:
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ cat etc/init.d/rcS
+#!/bin/sh
+
+mount -a
+# added by yangcaiyong for sysfs
+mount -t sysfs /sys /sys
+# ended add
+
+/bin/mkdir -m 0777 -p /var/https
+/bin/mkdir -m 0777 -p /var/lock
+/bin/mkdir -m 0777 -p /var/log
+/bin/mkdir -m 0777 -p /var/run
+/bin/mkdir -m 0777 -p /var/tmp
+/bin/mkdir -m 0777 -p /var/Wireless/RT2860AP
+/bin/mkdir -m 0777 -p /var/tmp/wsc_upnp
+cp -p /etc/SingleSKU_FCC.dat /var/Wireless/RT2860AP/SingleSKU.dat
+
+/bin/mkdir -m 0777 -p /var/tmp/dropbear
+
+/bin/mkdir -m 0777 -p /var/dev
+cp -p /etc/passwd.bak /var/passwd
+/bin/mkdir -m 0777 -p /var/l2tp
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+#echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
+
+echo 30 > /proc/sys/net/unix/max_dgram_qlen
+
+#krammer add for LAN can't continuous ping to WAN when exchenging the routing mode
+#bug1126
+echo 3 > /proc/sys/net/netfilter/nf_conntrack_icmp_timeout
+
+echo 0 > /proc/sys/net/ipv4/conf/default/accept_source_route
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route
+echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+
+echo 2560 > /proc/sys/net/netfilter/nf_conntrack_expect_max
+#defined 8192 in nf_conntrack_core.c
+echo 5120 > /proc/sys/net/netfilter/nf_conntrack_max
+
+#allow max low mem alloc
+echo 2 > /proc/sys/vm/overcommit_memory
+echo 100 > /proc/sys/vm/overcommit_ratio
+echo 2048 > /proc/sys/vm/min_free_kbytes
+
+insmod /lib/modules/kmdir/kernel/drivers/net/rt_rdm/rt_rdm.ko
+insmod /lib/modules/kmdir/kernel/drivers/net/raeth/raeth.ko
+
+#netfilter modules load
+insmod /lib/modules/kmdir/kernel/net/netfilter/nf_conntrack_proto_gre.ko
+insmod /lib/modules/kmdir/kernel/net/netfilter/nf_conntrack_pptp.ko
+
+#for sfe
+[ -d /lib/modules/kmdir/kernel/net/shortcut-fe ] && {
+        insmod /lib/modules/kmdir/kernel/net/shortcut-fe/shortcut-fe.ko
+        insmod /lib/modules/kmdir/kernel/net/shortcut-fe/shortcut-fe-cm.ko
+        echo 512 > /sys/sfe_ipv4/max_connections
+}
+
+#ip statisctics
+insmod /lib/modules/ipt_STAT.ko
+#support tplinklogin.net
+insmod /lib/modules/tp_domain.ko
+
+
+
+ifconfig lo 127.0.0.1 netmask 255.0.0.0
+
+#for l2tp modules
+insmod /lib/modules/pppol2tp.ko
+insmod /lib/modules/l2tp_ppp.ko
+
+#config mii for 7628
+config-mii.sh
+
+cos &
+```
+
+Nothing useful — no `httpd` or any web server start script here. Back to poking around...
+
+Finally, jackpot:
+
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ ls usr/bin
+afcd     cmxdns  dhcpd     dropbearkey    ebtables  igmpd      ipcrm   iptables  killall  pwdog      taskset  tdpd  top         wanType        xtables-multi
+arping   cos     dnsProxy  dropbearmulti  free      ip         ipcs    iwconfig  noipdns  rt2860apd  tc       tftp  traceroute  wlNetlinkTool
+ated_tp  dhcpc   dropbear  dyndns         httpd     ip6tables  ipping  iwpriv    ntpc     scp        tddp     tmpd  upnpd       wscd
+```
+
+**Boom. There it is.**  
+Not only that — there’s also `tftp`, `dnsProxy`, and other networking tools. Let’s confirm `httpd` is really the one serving `/web`:
+
+```
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ strings usr/bin/httpd | grep htm
+...
+qr.htm
+index.htm
+text/html
+"%s.htm",
+<html><head></head><body>%s</body></html>
+<html><head></head><body>OK</body></html>
+/main/status.htm
+/main/statusAP.htm
+/main/statusClient.htm
+/main/stat.htm
+/main/wlStats.htm
+/main/qsStart.htm
+/main/qsType.htm
+/main/qsPPP.htm
+/main/qsStaIp.htm
+/main/qsWl.htm
+/main/qsL2tp.htm
+/main/qsPptp.htm
+/main/qsAuto.htm
+/main/qsEnd.htm
+/main/qsSave.htm
+...
+```
+
+Confirmed: this binary contains all the HTML files we saw under `/web/main`.
+
+The web server has been found. Next step? Tear it apart 🧠🔍.
+
