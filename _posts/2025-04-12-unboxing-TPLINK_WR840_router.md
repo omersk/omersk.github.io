@@ -399,5 +399,345 @@ text/html
 ...
 ```
 
+#### Understanding The Init Process
+I was about to start and reversing the web server, but before doing it, I was thinking to my self: "maybe there are some more surfaces that will be more interesting than the web server? what if there is, for example, a telnet surface that is reserved for technicians, and allow you to read write execute a things on the device by just giving a username and a password?"
+
+So, in order to discover if it is a thing, I decided to understand what is being done on the init of the system. In order to do it, I asked chatGPT where does the init executable is located, and I was referenced to look at 
+```bash
+/sbin/init
+```
+
+executing ls on it lead to:
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ ls -la sbin/init
+lrwxrwxrwx 1 t_omersas t_omersas 14 Apr 12 09:49 sbin/init -> ../bin/busybox
+```
+
+and running busybox with qemu, show that:
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ sudo qemu-mipsel -L . ./bin/busybox
+./bin/busybox: cache '/etc/ld.so.cache' is corrupt
+BusyBox v1.19.2 (2024-12-30 15:52:05 CST) multi-call binary.
+Copyright (C) 1998-2011 Erik Andersen, Rob Landley, Denys Vlasenko
+and others. Licensed under GPLv2.
+See source distribution for full notice.
+
+Usage: busybox [function] [arguments]...
+   or: busybox --list[-full]
+   or: function [arguments]...
+
+        BusyBox is a multi-call binary that combines many common Unix
+        utilities into a single executable.  Most people will create a
+        link to busybox for each function they wish to use and BusyBox
+        will act like whatever it was invoked as.
+
+Currently defined functions:
+        arping, ash, brctl, cat, chmod, cp, date, df, echo, free, getty, halt,
+        ifconfig, init, insmod, ipcrm, ipcs, kill, killall, linuxrc, login, ls,
+        lsmod, mkdir, mount, netstat, pidof, ping, ping6, poweroff, ps, reboot,
+        rm, rmmod, route, sh, sleep, taskset, tftp, top, umount, vconfig
+```
+there is a really init in the defined functions. we can even try to run it:
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ sudo qemu-mipsel -L . ./bin/busybox init
+./bin/busybox: cache '/etc/ld.so.cache' is corrupt
+init: must be run as PID 1
+```
+
+Cool!
+
+In addition, as we can see, there is also a login function. Let's try to run it:
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root $ sudo qemu-mipsel -L . ./bin/busybox login
+./bin/busybox: cache '/etc/ld.so.cache' is corrupt
+PC login: a
+Password:
+Login incorrect
+PC login: ^C
+```
+
+Interesting... maybe the default users, passwords to embedded devices - root root, admin 1234, etc.. but all of this neither worked :( 
+
+Ok, let's put it on the side right now.
+Let's look on the init handler, by searching the error message we got when we had run it - "must be run as PID 1".
+
+We arrived to an interesting function, thats really looks like the init process:
+```c
+int __fastcall init_handler(int a1, _DWORD *a2)
+{
+  int v2; // $a0
+  _DWORD *v3; // $s0
+  int v4; // $v0
+  int v6; // $a1
+  int v7; // $v0
+  int v8; // $v0
+  int v9; // $s1
+  int v10; // $s1
+  int v11; // $a0
+  _BYTE *v12; // $s1
+  int v13; // $v0
+  int v14; // $a0
+  const char *v15; // $a1
+  void (__fastcall *v16)(int, const char *, int); // $t9
+  int i; // $a2
+  int v18; // $v0
+  int v19; // $s1
+  int v20; // $s1
+  BOOL j; // $a2
+  int v22; // $v0
+  int v23; // $v0
+  _BYTE v24[4]; // [sp+18h] [-2Ch] BYREF
+  int v25; // [sp+1Ch] [-28h] BYREF
+  int (*v26)(); // [sp+20h] [-24h]
+  _DWORD v27[5]; // [sp+24h] [-20h] BYREF
+  int v28; // [sp+38h] [-Ch]
+
+  v2 = a2[1];
+  v3 = a2;
+  if ( !v2 || (v4 = strcmp(v2, "-q"), v2 = 1, v4) )
+  {
+    if ( getpid(v2) != 1 && *(_BYTE *)dword_44FAE0 != 108 )
+      sub_435A50("must be run as PID 1", v6);
+    reboot(0);
+    dword_44FAEC = 2592000;
+    v7 = getenv("CONSOLE");
+    if ( v7 || (v7 = getenv("console")) != 0 )
+    {
+      v8 = open64(v7, 2178);
+      v9 = v8;
+      if ( v8 >= 0 )
+      {
+        dup2(v8, 0);
+        dup2(v9, 1);
+        sub_436E50(v9, 2);
+      }
+    }
+    else
+    {
+      sub_435C98();
+    }
+    v10 = getenv("TERM");
+    if ( ioctl(0, 22016, v24) )
+    {
+      if ( !v10 || !strcmp(v10, "linux") )
+        putenv("TERM=vt102");
+      off_44F654 = 0;
+    }
+    else if ( !v10 )
+    {
+      putenv("TERM=linux");
+    }
+    sub_42A794();
+    sub_4370D0("/");
+    setsid();
+    putenv("HOME=/");
+    putenv("PATH=/sbin:/usr/sbin:/bin:/usr/bin");
+    putenv("SHELL=/bin/sh");
+    putenv("USER=root");
+    putenv("TMPDIR=/var/tmp");
+    v11 = 4456448;
+    if ( v3[1] )
+      sub_436FF8("RUNLEVEL");
+    v12 = (_BYTE *)v3[1];
+    if ( v12 && (!strcmp(v3[1], "single") || !strcmp(v12, "-s") || *v12 == 49 && !v12[1]) )
+      sub_42A84C(8, "-/bin/sh", "");
+    else
+      sub_42ABA8(v11);
+    v13 = strlen(*v3);
+    v14 = *v3;
+    v15 = "init";
+    v16 = (void (__fastcall *)(int, const char *, int))&strncpy;
+    for ( i = v13; ; i = v18 )
+    {
+      ++v3;
+      v16(v14, v15, i);
+      if ( !*v3 )
+        break;
+      v18 = strlen(*v3);
+      v14 = *v3;
+      v15 = 0;
+      v16 = (void (__fastcall *)(int, const char *, int))&memset;
+    }
+    sub_434A44(229376, sub_42B6F8);
+    signal(3, sub_42B650);
+    v25 = 0;
+    v26 = 0;
+    v27[4] = 0;
+    memset(v27, 255, 16);
+    sigdelset(v27, 25);
+    v26 = sub_42B494;
+    sub_4349E4(24, &v25);
+    sub_4349E4(23, &v25);
+    sub_434AC8(4, sub_4349D8);
+    sub_434AC8(2, sub_4349D8);
+    sub_42B254(1);
+    sub_42B35C();
+    sub_42B254(2);
+    sub_42B35C();
+    sub_42B254(4);
+    while ( 1 )
+    {
+      v19 = sub_42B35C();
+      sub_42B254(24);
+      v20 = sub_42B35C() | v19;
+      sleep(1);
+      for ( j = (v20 | sub_42B35C()) != 0; ; j = 1 )
+      {
+        v22 = waitpid(-1, 0, j);
+        if ( v22 <= 0 )
+          break;
+        v28 = v22;
+        v23 = sub_42A74C(v22);
+        if ( v23 )
+          sub_42AA38(1, "process '%s' (pid %d) exited. Scheduling for restart.", (const char *)(v23 + 41), v28);
+      }
+    }
+  }
+  return kill(1, 1);
+}
+```
+
+I was not going deep into it, since it uses a-lot of functions, and I don't have a source code (actually there is a kind of source code for busybox but it a general codebase and in my opinion it was changed specifically for this router, since I can't find some strings in the codebase, that I see on the IDA.
+
+Anyway, some interesting thing I've found, is that, by looking on the xref to that function, we can see that it stays inside a list of function, that seems to be the handlers of the commands. I verified it by going to other functions and see that they are functions that looks like commands that the busybox implemented. In addition, I saw that this handlers list, sorted just like it appears when running the busybox to see his commands:
+
+```bash
+arping, ash, brctl, cat, chmod, cp, date, df, echo, free, getty, halt,
+ifconfig, init, insmod, ipcrm, ipcs, kill, killall, linuxrc, login, ls,
+lsmod, mkdir, mount, netstat, pidof, ping, ping6, poweroff, ps, reboot,
+rm, rmmod, route, sh, sleep, taskset, tftp, top, umount, vconfig
+```
+
+So I started to name some functions:
+```ida
+.data.rel.ro:0044F538 D4 7A 40 00 commands_handlers:.word sub_407AD4       # DATA XREF: sub_404EC0:loc_404F6C↑o
+.data.rel.ro:0044F53C 1C 12 42 00                 .word sub_42121C
+.data.rel.ro:0044F540 A0 86 40 00                 .word sub_4086A0
+.data.rel.ro:0044F544 34 78 42 00                 .word sub_427834
+.data.rel.ro:0044F548 7C 79 42 00                 .word sub_42797C
+.data.rel.ro:0044F54C F8 7A 42 00                 .word sub_427AF8
+.data.rel.ro:0044F550 E8 7C 42 00                 .word sub_427CE8
+.data.rel.ro:0044F554 D8 7F 42 00                 .word sub_427FD8
+.data.rel.ro:0044F558 6C 83 42 00                 .word echo_handler
+.data.rel.ro:0044F55C A4 F7 40 00                 .word free_handler
+.data.rel.ro:0044F560 0C 5D 40 00                 .word getty_handler
+.data.rel.ro:0044F564 C8 A5 42 00                 .word halt_handler
+.data.rel.ro:0044F568 2C 90 40 00                 .word ifconfig_handler
+.data.rel.ro:0044F56C 78 B7 42 00                 .word init_handler
+.data.rel.ro:0044F570 DC 70 40 00                 .word insmod_handler
+.data.rel.ro:0044F574 D4 30 42 00                 .word ipcrm_handler
+.data.rel.ro:0044F578 88 47 42 00                 .word ipcs_handler
+.data.rel.ro:0044F57C E0 F9 40 00                 .word kill_handler
+.data.rel.ro:0044F580 E0 F9 40 00                 .word kill_handler
+.data.rel.ro:0044F584 78 B7 42 00                 .word init_handler
+.data.rel.ro:0044F588 F8 67 40 00                 .word login_handler
+.data.rel.ro:0044F58C 28 90 42 00                 .word sub_429028
+```
+
+And that's lead to the next mission, to understand the login creds!
+
+#### Login Credentials
+So, first of all, let's understand what's going on. /bin/login is soft linked to busybox meaning it's calls to busybox login (I didn't prove it, but it sounds logically). Let's see in the IDA who calls to /bin/login. Xref to this string found only on - `getty_handler` which is, by chatGPT, manages physical or virtual terminals. It waits for a connection on a terminal line and then invokes login.
+
+Ok, cool, now let's dive deeper to find a username and a password.
+I searched for XRefs to "Password:" string, and land on a function that looks very interesting.
+
+```c
+BOOL __fastcall check_password(BOOL is_adminqq)
+{
+  const char *expected_password; // $a1
+  int input; // $v0
+  int v3; // $s1
+  BOOL is_equal; // $s0
+  int v5; // $v0
+  const char *v7; // [sp+18h] [-Ch]
+
+  if ( is_adminqq )
+    expected_password = "sohoadmin";
+  else
+    expected_password = "aa";
+  v7 = expected_password;
+  input = inputqq((int)"Password: ");
+  v3 = input;
+  is_equal = 0;
+  if ( input )
+  {
+    is_equal = strcmp(input, v7) == 0;
+    v5 = strlen(v3);
+    memset(v3, 0, v5);
+  }
+  return is_equal;
+}
+```
+
+seems like depending on the BOOL if we are admin or not, the password that expected is 'sohoadmin' or 'aa'. when I tried sohoadmin, it still wrote me that the password is incorrect. but when trying aa it crashed the program. I tried to understand why it is crashing my program, and more important, how can I be an admin.
+
+I saw that the `is_admin` bool is received from `sub_438728`, which inside it, calls to that function:
+```c
+int __fastcall sub_438368(int a1, _DWORD *a2, int a3, int a4, _DWORD *a5)
+{
+  int v9; // $s0
+  int v10; // $s7
+  int v11; // $v0
+
+  *a5 = 0;
+  v9 = open_read("/etc/passwd");
+  if ( !v9 )
+    return *(_DWORD *)dword_44FAE4;
+  while ( 1 )
+  {
+    v11 = sub_437CFC(sub_438214, a2, a3, a4, v9);
+    v10 = v11;
+    if ( v11 )
+      break;
+    if ( !strcmp(*a2, a1) )
+    {
+      *a5 = a2;
+      goto LABEL_7;
+    }
+  }
+  v10 = v11 != 2 ? v11 : 0;
+LABEL_7:
+  fclose(v9);
+  return v10;
+}
+```
+that seems like it opening /etc/passwd. I now remember that when I extracted the BIN file, it wrote me 
+```warning
+WARNING: Symlink points outside of the extraction directory: /home/t_omersas/temp/_TPLINK.bin-0.extracted/squashfs-root/etc/passwd -> /var/passwd; changing link target to /dev/null for security purposes.
+```
+
+So, it might be the problem.
+
+Let's change it manually.
+```bash
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root/etc $ rm -rf passwd
+t_omersas@PC ~/projects/_TL_WR840N.bin.extracted/squashfs-root/etc $ sudo ln -s /var/passwd passwd
+```
+
+and, let's try to create a chroot environment using 
+```bash
+cp /usr/bin/qemu-mipsel-static squashfs-root/usr/bin/
+sudo chroot squashfs-root /usr/bin/qemu-mipsel-static /bin/sh
+```
+
+Then, running:
+```bash
+/usr/bin/qemu-mipsel-static /bin/busybox login
+```
+
+but it seems to be crashing too:
+```bash
+/ # /usr/bin/qemu-mipsel-static /bin/busybox login
+PC login: a
+Password:
+qemu: uncaught target signal 11 (Segmentation fault) - core dumped
+Segmentation fault (core dumped)
+```
+
+maybe, it something else :(
+
+
 #### Reversing The Web Server
+TODO!
 
