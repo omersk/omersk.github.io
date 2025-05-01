@@ -248,14 +248,11 @@ rom: requested regions overlap (rom prom. free=0x00000000002d92ec, addr=0x000000
 qemu-system-mipsel: rom check and register reset failed
 ```
 
----
 
-💡 New Plan: Focus on Userland
----
+> 💡 New Plan: Focus on Userland
 
 So, I gave up kernel emulation and did something smarter:
-> Focus on what **really matters** — the filesystem and, more specifically, the **web server**.
-
+Focus on what **really matters** — the filesystem and, more specifically, the **web server**.
 Because let’s be honest... that’s where the juicy bugs live.
 
 #### 🌐 Finding the Web Server (a.k.a. "Where Are You Hiding, Little HTTPd?")
