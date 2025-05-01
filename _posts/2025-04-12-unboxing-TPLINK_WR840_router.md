@@ -806,7 +806,7 @@ Literally just checks if the input is `"sohoadmin"` or `"aa"`. That’s it.
 
 ---
 
-#### 🔐 Why `correct = "aa"`?
+##### 🔐 Why `correct = "aa"`?
 
 In upstream BusyBox, `"aa"` is used as a fake hash — a decoy. If the username doesn’t exist, it still asks for a password and compares it against `"aa"` using `crypt()`, which guarantees failure. This helps prevent **timing attacks** — attackers shouldn’t be able to tell whether the username or the password was invalid.
 
