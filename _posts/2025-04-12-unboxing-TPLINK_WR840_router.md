@@ -250,7 +250,8 @@ qemu-system-mipsel: rom check and register reset failed
 
 ---
 
-##### 💡 New Plan: Focus on Userland
+💡 New Plan: Focus on Userland
+---
 
 So, I gave up kernel emulation and did something smarter:
 > Focus on what **really matters** — the filesystem and, more specifically, the **web server**.
@@ -432,7 +433,6 @@ Confirmed: this binary contains all the HTML files we saw under `/web/main`.
 The web server has been found. Next step? Tear it apart 🧠🔍.
 
 ---
-WIP
 #### 🧠 Understanding the Init Process
 
 Just as I was about to jump into reversing the web server, a little voice in my head whispered:
@@ -806,7 +806,7 @@ Literally just checks if the input is `"sohoadmin"` or `"aa"`. That’s it.
 
 ---
 
-##### 🔐 Why `correct = "aa"`?
+🔐 Why `correct = "aa"`?
 
 In upstream BusyBox, `"aa"` is used as a fake hash — a decoy. If the username doesn’t exist, it still asks for a password and compares it against `"aa"` using `crypt()`, which guarantees failure. This helps prevent **timing attacks** — attackers shouldn’t be able to tell whether the username or the password was invalid.
 
