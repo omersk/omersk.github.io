@@ -698,7 +698,7 @@ Segmentation fault (core dumped)
 So either there’s still something missing… or this rabbit hole goes deeper than I thought. 😵‍💫
 
 ---
-##### 🧩 Discovering the Source Code
+#### 🧩 Discovering the Source Code
 
 At this point, I was *this close* to giving up and just buying the physical router — but then it hit me:  
 *"Wait a minute... what if the BusyBox source code is similar enough to reverse what's going on?"*
